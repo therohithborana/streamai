@@ -1,5 +1,5 @@
 import streamlit as st
-import openai
+from openai import OpenAI
 from datetime import datetime
 
 # Page configuration
@@ -45,12 +45,14 @@ if 'story_history' not in st.session_state:
     st.session_state.story_history = []
 if 'image_prompts' not in st.session_state:
     st.session_state.image_prompts = []
+if 'client' not in st.session_state:
+    st.session_state.client = None
 
 def initialize_openai_api():
     """Initialize OpenAI API with the provided key."""
     api_key = st.sidebar.text_input("Enter OpenAI API Key", type="password")
     if api_key:
-        openai.api_key = api_key
+        st.session_state.client = OpenAI(api_key=api_key)
         return True
     return False
 
@@ -64,7 +66,7 @@ def generate_content(prompt, content_type="chat", max_tokens=150):
             prompt = f"Generate a detailed, creative image prompt about: {prompt}"
             max_tokens = 100
 
-        response = openai.ChatCompletion.create(
+        response = st.session_state.client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=max_tokens,
